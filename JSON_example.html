@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h3>Create Object from JSON String</h3>
+
+<p id="demo"></p>
+
+<p id="demoTwo"></p>
+
+<script>
+// Good example of reducing DOM access, I've declared two variables to hold the DOM's for the paragraph id's I've created outside of the javascript
+var demoObj = document.getElementById("demo");
+var demoTwoObj = document.getElementById("demoTwo");
+var text = '{"employees":[' +
+'{"firstName":"John","lastName":"Doe" },' +
+'{"firstName":"Anna","lastName":"Smith" },' +
+'{"firstName":"Peter","lastName":"Jones" }]}';
+
+obj = JSON.parse(text);
+demoObj.innerHTML = obj.employees[1].firstName + ", " + obj.employees[1].lastName;
+demoTwoObj.innerHTML = obj.employees[1].lastName + ", " + obj.employees[1].firstName;
+</script>
+
+</body>
+</html>
