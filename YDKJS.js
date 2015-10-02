@@ -1232,12 +1232,12 @@ the value stored in a so we can pass that to console.log();
 }());
 
 // Collision avoidance
-(function () {
+(function main () {
 	"use strict";
 
 	function foo() {
 		function bar(a) {
-			i = 3; // Changing the 'i' in the enclosing scope's for-loop, i set to a fixed value of 3 it remains unchanged every time the for loop is evaluated.
+			// i = 3; // Changing the 'i' in the enclosing scope's for-loop, i set to a fixed value of 3 it remains unchanged every time the for loop is evaluated.
 			console.log( a + i );
 		}
 
@@ -1248,4 +1248,118 @@ the value stored in a so we can pass that to console.log();
 
 	foo();
 
+// })();
+}()); // Either of the two closing wrapper immediate executions work, they are merely a matter of preference.
+// I guess this one }()); Looks slightly cleaner.
+
+// Anonymous vs. Named functions
+// Function expressions are typically seen as callback parameters such as:
+
+setTimeout( function() {					// This is an anonymous function expression
+	console.log("I waited 1 whole seconed");
+}, 1000);
+
+
+// Named function used as the callback
+setTimeout( function timoutHandler() {
+	debugger;
+	console.log("I have waited 1 second");
+}, 1000);
+
+// Passing an arument into an IIFE
+
+var a = 2;
+
+(function IIFE (global) { 	// This immediately invoked function execution takes a parameter that we're calling global
+	var a = 3;
+	console.log(a); // 3
+	console.log(global.a); // 2
+}(window));		// The global window object is getting passed in here to the global parameter
+
+console.log(a); // 2
+
+
+undefined = true; // setting a land-mine for other code! avoid!
+
+(function IIFE( undefined ){
+
+    var a;
+    if (a === undefined) {
+        console.log( "Undefined is safe here!" );
+    }
+
 }());
+
+(function () {
+	"use strict";
+
+	var a = 2;
+
+	(function IIFE ( def ) {
+		def ( window );
+		})(function def ( global ) {
+			var a = 3;
+			console.log(a); // 3
+			console.log(global.a); // 2
+	});
+
+}());
+
+
+// Block Scoping
+
+// You can block scope using a with statement, but don't use with statements in Javascript, they are lazy.
+
+// Here's an example of try/catch block Scoping
+(function() {
+	"use strict";
+
+	try {
+	    undefined(); // illegal operation to force an exception!
+	}
+	catch (err) {
+	    console.log( err ); // works!
+	}
+
+	try {			// Some linters will complain about the re-use of err in this try/catch block.
+		undefined();
+	}
+	catch (err) {
+		console.log( err ); // Even though err is safely block-scoped in the catch block.
+	}
+
+	console.log( err ); // ReferenceError: `err` not found
+}());
+
+// Explicit block Scoping
+// * Doesn't execute in Dev Console *
+
+(function() {
+	"use strict";
+
+	var foo = true;
+
+	if (foo) {
+		{
+			let bar = foo * 2;
+			bar = something(bar);
+			console.log(bar);
+		}
+	};
+
+	console.log( bar ); // ReferenceError
+}());
+
+(function() {
+	"use strict";
+	
+	var foo = true, baz = 10;
+
+	if (foo) {
+	    let bar = 3;
+
+	    if (baz > bar) { // <-- don't forget `bar` when moving!
+	        console.log( baz );
+	    }
+	}
+}());	
