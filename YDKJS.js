@@ -1056,3 +1056,196 @@ for (var info in myObject) {
 	console.log(Object.getPrototypeOf(bar)); // The prototype of bar is Object
 
 }());
+
+/* Widget "Classes" */
+
+// This is messy and not very simple, trying to override classes and mock super
+// The notion of is full of head aches.
+(function () {
+	"use strict";
+
+	//Parent "class"
+	function Widget(width, height) {
+		this.width = width || 50;
+		this.height = height || 50;
+		this.$elem = null;
+	}
+
+	Widget.prototype.render = function($where) {
+		if(this.$elem) {
+			this.$elem.css ( {
+				width: this.width + "px",
+				height: this.height + "px"
+			}).appendTo ($where);
+		}
+	};
+
+	//Child "Class"
+	function Button(width, height, label) {
+		// "super" constructor call
+		Widget.call( this, width, height );
+		this.label = label || "Default";
+
+		this.$elem = $("<button>").text(this.label);
+	};
+
+	// Make "Button" "inherit" from Widget
+	Button.prototype = Object.create(Widget.prototype);
+
+	// Override the base inherited render method
+	Button.prototype.render = function($where) {
+		// "super" call
+		Widget.prototype.render.call(this, $where);
+		this.$elem.click(this.onClick.bind(this));
+	};
+
+	Button.prototype.onClick = function(evt) {
+		console.log ("Button " + this.label + " clicked!" );
+	};
+
+	$( document ).ready(function() {
+		var $body = $(document.body);
+		var btn1 = new Button(125, 30, "Hello");
+		var btn2 = new Button(150, 40, "World");
+
+		btn1.render($body);
+		btn2.render($body);
+	});
+
+}());
+
+/* Simplified version with OLOO */
+
+// The OLOO Design pattern better supports separation of concerns
+// You have the ability to construct objects at the beginning of the program and then
+// initialize them with a specific setup when they are pulled from the pool and actually used.
+
+(function() {
+	"use strict";
+
+	// Here's the Widget object with object literal notation.
+	var Widget = {
+		init: function(width, height) {
+			this.width = width || 50;
+			this.height = height || 50;
+			this.$elem = null;
+		},
+		insert: function($where) {
+			if (this.$elem) {
+				this.$elem.css( {
+					width: this.width + "px",
+					height: this.height + "px"
+				}).appendTo($where);
+			}
+		}
+	}
+
+	var Button = Object.create(Widget);
+
+	Button.setup = function(width, height, label){
+		//delegated call
+		this.init(width, height);
+		this.label = label || "Default";
+
+		this.$elem = $("<button>").text(this.label);
+	};
+	Button.build = function($where) {
+		//delegated call
+		this.insert($where);
+		this.$elem.click(this.onClick.bind(this));
+	};
+	Button.onClick = function(evt) {
+		console.log("Button '" + this.label + "' clicked");
+	};
+
+	$(document).ready(function() {
+		var $body = $(document.body);
+
+		var btn1 = Object.create(Button); // Construction
+		btn1.setup(125, 30, "Hello"); // Initialization
+
+		var btn2 = Object.create(Button);	// Same here, construction
+		btn2.setup(150, 40, "World");		// Initialization
+
+		btn1.build($body);
+		btn2.build($body);
+	});
+
+}());
+
+
+
+/* Scope and Closures */
+
+There are three major parts to breaking down the following assignment:
+var a = 2;
+
+var   a     =    2   ;
+
+First is Tokenizing/Lexing: The string is broken up into chunks that are referred to as tokens.
+
+Next is parsing: The array (stream) of tokens are taken and turned into a tree of nested elements,
+	collectively they represent the grammatical sttructure of the program. The tree is called an Abstract Syntax tree
+
+Then Code Generation: The process of taking an Abstract Syntax Tree and actually refining it into executable code.
+Javascript is a compiled language, albeit a very quickly compiled language handled by the V8 engine.
+
+var a = 2; Has to be compiled before it is executed, usually executed right away.
+
+Engine
+Compiler
+Scope
+
+var a = 2; This is a LHS reference
+We want to find the variable as a target for the =2 assignnment
+
+console.log (a); This is a RHS reference
+We aren't concrened with assignment, nothing is being assigned to a, instead we're looking up to retrieve
+the value stored in a so we can pass that to console.log();
+
+(LHS) More concisely means, who is the target of the assignment as in a = 2, where a is the target.
+
+(RHS) More concisely means, who is the source of the assignment as in console.log(a);
+
+// Proper desing of keeping private details inside the scope of the doSomething function
+// This is an example of function scope.
+(function main(){
+	"use strict";
+
+	function doSomething(a){
+		
+		function doSomethingElse(a) {
+			return a - 1;
+		}
+
+		var b;
+
+		b = a + doSomethingElse ( a * 2 );
+
+		console.log( (b * 3 ) );
+	}
+
+	// console.log(b * 2); // ReferenceError: b is not defined. There is no b in the scope so the Engine returns RefError
+
+	doSomething( 2 ); // Prints out 15
+
+}());
+
+// Collision avoidance
+(function () {
+	"use strict";
+
+	function foo() {
+		function bar(a) {
+			i = 3; // Changing the 'i' in the enclosing scope's for-loop, i set to a fixed value of 3 it remains unchanged every time the for loop is evaluated.
+			console.log( a + i );
+		}
+
+		for (var i = 0; i < 10; i++) {
+			bar (i * 2 ); // This is an infinite loop
+		}
+	}
+
+	foo();
+
+}());
