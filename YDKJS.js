@@ -2,58 +2,6 @@
 
 // My own understanding and some examples from You don't know JS series by Kyle Simpson
 
-
-var cost = 99.99;
-var bankAccount = prompt("How much do you want to spend?");
-var total = 0;
-var accessoryPrice = 9.99;
-
-
-for (i = 0; i < bankAccount; i++) {
-	if (bankAccount > cost) {
-	bankAccount -= cost;
-	total += cost;
-		if(bankAccount > accessoryPrice) {
-			bankAccount -= accessoryPrice;
-			total += accessoryPrice;
-		}
-		else {
-			console.log("You can't afford the accessory");
-		}
-	}
-	else {
-		console.log("You don't have enough money to keep buying phones");
-	}
-};
-
-var calcTax = function calcTaxFunc(total) {
-	const TAX_RATE = 0.08;
-	total = total + (total * TAX_RATE);
-	return total.toFixed(2);
-}
-
-console.log(typeof(calcTax));
-console.log("The total of your purchase is: $" + calcTax(total));
-//debugger;
-console.log("You have: $" + bankAccount.toFixed(2) + " in your bank account");
-
-var foo = function funcFunc() {
-	return 42;
-};
-
-foo.bar = "Hello World";
-
-typeof(foo);
-typeof(foo());
-typeof(foo.bar);
-
-/*
-var a;
-typeof(a);
-console.log(typeof(a));
-typeof(null);
-*/
-
 /* Closure example */
 
 var makeAdder = function makeAdderFunc(x) {
