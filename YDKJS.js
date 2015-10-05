@@ -1352,7 +1352,7 @@ undefined = true; // setting a land-mine for other code! avoid!
 
 (function() {
 	"use strict";
-	
+
 	var foo = true, baz = 10;
 
 	if (foo) {
@@ -1363,3 +1363,360 @@ undefined = true; // setting a land-mine for other code! avoid!
 	    }
 	}
 }());	
+
+
+(function() {
+	"use strict";
+
+	function foo() {
+		var a;	// Remember declaration comes first when looking at the scope in question
+
+		console.log(a); // undefined
+
+		a = 2;	// And assignmnets are left in place.
+	}
+
+	foo();
+
+}());
+
+(function() {
+	"use strict";
+
+	foo();	// TypeError foo is not a function
+
+	var foo = function bar() {
+		console.log("This won't get printed");
+	}
+}());
+
+// Closure
+
+function baz() {
+	"use strict";
+
+	var a = 10;
+
+	function foo(){
+		console.log(a * 2);
+	}
+
+	foo();
+};
+
+baz();
+
+var c = 5;
+
+(function main() {
+	"use strict";
+		function baz() {
+			"use strict";
+
+			var a = 10;
+
+			var foo = function fooFunc(){	// Here foo has closure over the scope of baz, foo also has closure over the global scope
+				console.log(a  * 2);
+				console.log(c);
+			}
+
+			foo();
+		}
+}());
+
+baz();
+
+
+// Real closure
+
+function foo() {
+	var a = 2;
+
+	function bar() {
+		console.log(a);
+	};
+
+	return bar; // Retruning a reference to bar from foo.
+};
+
+var baz = foo();  // Now baz is assigned to what foo is returning, which is the function object bar. If I want to invoke bar, I would do baz();
+
+baz();  // This is where closure comes in, because we are actually executing bar outside of its declared lexical scope.
+// Closure is bar's reference to the inner scope of foo.
+// One would normally think that after we've executed the foo function and assigned to baz it would get garbage collected. We've left it's scope and we're done, but not quite.
+// The inner scope of foo is in fact still in use and does not go away. The function bar() is using that scope.
+// Because of where it was declared bar() has lexical scope closure over the inner scope of foo(), which keeps that scope alive for bar() to reference at a later time.
+// Closure allows a function to continue to access the lexical scope it was defined in at author-time.
+
+
+function foo() {
+	var a = 2;
+
+	function baz() {
+		console.log( a ); // 2
+	}
+
+	bar (baz);
+}
+
+function bar(fn) {
+	fn(); // Another great example of closure.
+};
+
+// It's mostly transporting an inner function outside of it's lexical scope, so that we can maintain a scope reference to where it was originally declared,
+// then wherever that function gets executed that closure will be exercised.
+
+function wait(message) {
+	setTimeout(function timer() {
+		console.log(message);
+	}, 1000);
+}
+
+wait("Look it's more closure");
+
+// Loop and Closure
+
+for(var i = 1; i <=5; i++) {		// This doesn't necessarily work as intended. It's the same i each time, there's only one in the scope.
+	(function () { 
+		setTimeout(function timer() {	// This is not enough to have scope close over if the scope is just empty.
+			console.log(i);
+		}, i * 1000);
+	}());
+}
+
+// This is probably one of the better examples of closure to reference.
+for (var i = 1; i <= 5; i++) {
+	(function() {		
+		var j = i;						// The IIFE needs it's own copy of the value of i for each iteration.
+		setTimeout (function timer() {
+			console.log(i);
+		}, j * 1000);
+	}());
+}
+
+for (var i = 1; i <=5; i++) {
+	(function (j) {					// The IIFE is used to have a new scope per-iteration. A per-iteration block scope was necessary for this to work.
+		setTimeout (function timer() {	// This function and the above peform the same task. The closure is also the same.
+			console.log(j);						
+		}, j * 1000);
+	}(i));
+};
+
+(function () {
+	"use strict";
+
+	for(let i = 1; i <=5; i++) {		// And if we wanted to, we can use ES6 let so that 'i' is initialized again for every iteration.
+		setTimeout(function timer() {	// The variable is not declared just once for the loop, it is initialized at each subsequent iteration
+			console.log(i);				// with the value of the previous iteration.
+		}, i * 1000);
+	};
+}());
+
+
+/* Modules */
+
+(function main() {
+	"use strict";
+
+	function CoolModule() {		// This is known in JavaScript as the module, it serves as the outer enclosing function
+		var something = "cool";
+		var another = [1,2,3];
+
+		function doSomething() {		// The enclosing function, CoolModule, must return back at least one inner function
+			console.log(something);		// So that this inner function has closure over the private scope, and can access and/or modify that private state.
+		};
+
+		function doAnother() {
+			console.log(another.join (" ! "));
+		};
+
+		return {						// When we return this object-literal, we are exposing the module, it's essentially a public API for the module.
+			doSomething : doSomething,	// We reference the inner functions but NOT the inner data variables something and another.
+			doAnother: doAnother		// Those inner data variables are to remain hidden and private
+		};
+	};
+
+	var foo = CoolModule();	// Invoking CoolModule() so that a module instance is created. Creates a new Module instance everytime it's invoked.
+	// Without the execution of the outer function the inner scope and closures would not occur.
+
+	foo.doSomething(); // Should print out cool
+	foo.doAnother(); // 1 ! 2 ! 3 !
+
+}());
+
+
+(function main() {			// This is a slight variation of the above Module definition.
+	"use strict";
+
+	var foo = (function CoolModule() {	// Setting the IIFE of CoolModule to foo, insures that we only have one instance
+		var something = "cool";			// Which this could be considered a Singleton.
+		var another = [1,2,3];
+
+		function doSomething() {
+			console.log(something);
+		};
+
+		function doAnother() {
+			console.log(another.join (" ! "));
+		};
+
+		return {
+			doSomething : doSomething,
+			doAnother : doAnother
+		};
+	}());
+
+	foo.doSomething();
+	foo.doAnother();
+
+}());
+
+
+(function main() {
+	"use strict";
+
+	function CoolModule(id) {	// Since Modules are just functions they can recieve parameters.
+		function identify() {
+			console.log(id);
+		};
+
+		return identify;
+	};
+
+	var foo1 = CoolModule("foo 1");
+	var foo2 = CoolModule("foo 2");
+
+	foo1();
+	foo2();
+}());
+
+//OR
+
+(function main() {
+	"use strict";
+
+	function CoolModule(id) {
+		function identify() {
+			console.log(id);
+		};
+
+		return {
+			identify : identify
+		};
+	};
+
+	var foo1 = CoolModule("This is foo 1");
+	var foo2 = CoolModule("This is foo 2");
+
+	foo1.identify();
+	foo2.identify();
+
+}());
+
+(function main() {
+	"use strict";
+
+	var foo = (function CoolModule(id) {
+		function change() {
+			publicAPI.identify = identify2; // Allows ability to modify the publicAPI
+		};
+
+		function identify1() {
+			console.log(id);
+		};
+
+		function identify2() {
+			console.log(id.toUpperCase());
+		};
+
+		var publicAPI = {
+			change : change,
+			identify : identify1
+		};
+
+		return publicAPI;
+	}("foo module"));
+
+	foo.identify();	// Invokes/calls identify1
+	foo.change();	// Changes the property value of publicAPI.identify to function object identify2;
+	foo.identify();
+
+}());
+
+// Example of Modern Module use
+
+(function main () {
+	"use strict";
+
+	var MyModules = (function Manager() {
+		var modules = {};
+
+		function define(name, deps, impl) {
+			for (var i = 0; i < deps.length; i++) {
+				deps[i] = modules[deps[i]];
+			}
+			modules[name] = impl.apply(impl, deps);
+		};
+
+		function get(name) {
+			return modules[name];
+		};
+
+		return {
+			define: define,
+			get: get
+		};
+	}());
+
+	MyModules.define("bar", [], function(){
+		function hello(who) {
+			return "Let me introduce: " + who;
+		};
+
+		return {
+			hello : hello
+		};
+	});
+
+	MyModules.define("foo", ["bar"], function(bar){
+		var hungry = "hippo";
+
+		function awesome() {
+			console.log(bar.hello(hungry).toUpperCase());
+		};
+
+		return {
+			awesome : awesome
+		};
+	});
+
+	var bar = MyModules.get("bar");
+	var foo = MyModules.get("foo");
+
+	console.log(
+		bar.hello("hippo")
+	);
+
+	foo.awesome();
+
+}());
+
+
+(function () {		// Just going back over while and do while loops
+	"use strict";
+
+	let b = true;
+
+	do {
+		console.log ("Print a");
+		b = false;
+	} while(b);
+
+	b = true;
+
+	while(b){
+		console.log("Print b");
+		b = false;
+	};
+
+}());
