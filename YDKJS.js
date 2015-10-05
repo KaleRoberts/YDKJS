@@ -1720,3 +1720,36 @@ for (var i = 1; i <=5; i++) {
 	};
 
 }());
+
+
+
+/* Types and Grammar */
+
+(function main () {
+	"use strict";
+
+	function foo() {
+		var arr = Array.prototype.slice.call(arguments);
+		arr.push("bam");
+		console.log(arr);
+	}
+
+	foo("bar", "baz");
+
+	var a = "foo";
+	var b = ["f", "o", "o"];
+	var c = [];
+
+	c[0] = 1;
+	c["foobar"] = 2;	//	This does not count towards the length of the array
+
+	console.log(c.length);
+
+
+	console.log(b.join(""));
+
+	for (var info in b){
+		console.log(b[info] + "");
+	};
+
+}());
